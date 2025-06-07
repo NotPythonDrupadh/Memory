@@ -1,105 +1,67 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+const emojis = ['🍕','🍔','🍟','🌮','🍣','🍩','🍪','🍎'];
+let cards = [];
+let flipped = [];
+let lock = false;
 
-const gravity = 0.5;
-const keys = {};
+function startGame() {
+  const board = document.getElementById("game-board");
+  board.innerHTML = "";
+  cards = shuffle([...emojis, ...emojis]);
+  flipped = [];
+  lock = false;
 
-const player = {
-  x: 50,
-  y: 0,
-  width: 30,
-  height: 30,
-  color: "lime",
-  dx: 0,
-  dy: 0,
-  jumpPower: -10,
-  grounded: false,
-};
-
-const platforms = [
-  { x: 0, y: 370, width: 800, height: 30 },
-  { x: 200, y: 300, width: 100, height: 10 },
-  { x: 350, y: 250, width: 100, height: 10 },
-  { x: 500, y: 200, width: 100, height: 10 },
-  { x: 700, y: 150, width: 50, height: 10 },
-];
-
-const goal = {
-  x: 710,
-  y: 110,
-  width: 30,
-  height: 30,
-  color: "gold"
-};
-
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
-
-function updatePlayer() {
-  player.dx = 0;
-  if (keys["ArrowLeft"]) player.dx = -3;
-  if (keys["ArrowRight"]) player.dx = 3;
-
-  if (keys[" "] && player.grounded) {
-    player.dy = player.jumpPower;
-    player.grounded = false;
-  }
-
-  // Apply gravity
-  player.dy += gravity;
-
-  // Predict next position
-  let nextX = player.x + player.dx;
-  let nextY = player.y + player.dy;
-
-  player.grounded = false;
-
-  for (let p of platforms) {
-    // Check horizontal collision
-    if (
-      nextX < p.x + p.width &&
-      nextX + player.width > p.x &&
-      player.y < p.y + p.height &&
-      player.y + player.height > p.y
-    ) {
-      if (player.dx > 0) {
-        nextX = p.x - player.width;
-      } else if (player.dx < 0) {
-        nextX = p.x + p.width;
-      }
-      player.dx = 0;
-    }
-
-    // Check vertical collision
-    if (
-      player.x < p.x + p.width &&
-      player.x + player.width > p.x &&
-      nextY < p.y + p.height &&
-      nextY + player.height > p.y
-    ) {
-      if (player.dy > 0) {
-        nextY = p.y - player.height;
-        player.grounded = true;
-      } else if (player.dy < 0) {
-        nextY = p.y + p.height;
-      }
-      player.dy = 0;
-    }
-  }
-
-  player.x = nextX;
-  player.y = nextY;
-
-  // Win condition
-  if (
-    player.x < goal.x + goal.width &&
-    player.x + player.width > goal.x &&
-    player.y < goal.y + goal.height &&
-    player.y + player.height > goal.y
-  ) {
-    alert("🎉 You win!");
-    window.location.reload();
+  for (let i = 0; i < cards.length; i++) {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    card.dataset.value = cards[i];
+    card.dataset.index = i;
+    card.innerText = "";
+    card.addEventListener("click", flipCard);
+    board.appendChild(card);
   }
 }
 
-gameLoop();
+function flipCard(e) {
+  const card = e.target;
+  if (lock || card.classList.contains("flipped")) return;
+
+  card.classList.add("flipped");
+  card.innerText = card.dataset.value;
+  flipped.push(card);
+
+  if (flipped.length === 2) {
+    lock = true;
+    setTimeout(checkMatch, 800);
+  }
+}
+
+function checkMatch() {
+  const [card1, card2] = flipped;
+
+  if (card1.dataset.value !== card2.dataset.value) {
+    card1.classList.remove("flipped");
+    card2.classList.remove("flipped");
+    card1.innerText = "";
+    card2.innerText = "";
+  }
+
+  flipped = [];
+  lock = false;
+
+  const allFlipped = [...document.querySelectorAll(".card")].every(card =>
+    card.classList.contains("flipped")
+  );
+  if (allFlipped) {
+    setTimeout(() => alert("🎉 YOU WIN!"), 500);
+  }
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+startGame();

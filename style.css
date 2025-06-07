@@ -1,13 +1,35 @@
 body {
+  font-family: sans-serif;
+  background: #1e1e1e;
+  color: #fff;
+  text-align: center;
   margin: 0;
-  background: #111;
+  padding: 20px;
+}
+
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  grid-gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.card {
+  width: 80px;
+  height: 80px;
+  background: #444;
+  font-size: 2em;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 10px;
+  transition: background 0.3s;
 }
 
-canvas {
-  border: 3px solid #fff;
-  background: #222;
+.card.flipped {
+  background: #fff;
+  color: #000;
 }
